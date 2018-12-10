@@ -1,4 +1,9 @@
 import re
+import pprint
+import json
+from urllib.parse import parse_qs, urljoin
+
+
 def http404(env, start_response):
     start_response('404 Not Found', [('Content-type', 'text/plain; charset=utf-8')])
     return ['404 Not Found']
@@ -11,6 +16,9 @@ class Request():
     def __init__(self,environ):
         self.environ = environ
         self._body = None
+        pprint.pprint('================')
+        pprint.pprint(environ)
+        pprint.pprint('================')
 
     @property
     def path(self):
@@ -21,11 +29,34 @@ class Request():
         return self.environ['REQUEST_METHOD'].upper()
 
     @property
+    def forms(self):
+        form = cgi.FieldStorage(
+            fp=self.environ['wsgi.input'],
+            environ=self.environ,
+            keep_blank_value=True,
+        )
+        params = {k: form[k].value for k in form}
+        return params
+    
+    @property
+    def query(self):
+        return parse_qs(self.environ['QUERY_STRING'])
+
+    @property
     def body(self):
         if self._body is None:
             content_length = int(self.environ.get('CONTENT_LENGTH', 0))
             self._body = self.environ['wsgi.input'].read(content_length)
             return self._body
+    
+    @property
+    def text(self):
+        return self.body.decode(self.charset)
+
+    @property
+    def json(self):
+        return json.loads(self.body)
+
 
 class Router():
     def __init__(self):
