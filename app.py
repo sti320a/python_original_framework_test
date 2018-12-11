@@ -2,6 +2,8 @@ import re
 import pprint
 import json
 from urllib.parse import parse_qs, urljoin
+from http.client import responses as http_responses
+from wsgiref.headers import Headers
 
 
 def http404(env, start_response):
@@ -61,7 +63,7 @@ class Request():
 class Response():
     default_status = 200
     default_charset = 'utf-8'
-    default_content_type = 'text/htmll charset=UTF-8'
+    default_content_type = 'text/html; charset=UTF-8'
 
     def __init__(self, body='', status=None, headers=None, charset=None):
         self._body = body
@@ -129,5 +131,8 @@ class App():
     # Appをcallable(呼び出し可能)に
     def __call__(self, env, start_response):
         request = Request(env)
-        callback, kwargs = self.router.match(request.method, request.path)
-        return callback(request, start_response, **kwargs)
+        callback, url_vars = self.router.match(request.method, request.path)
+
+        response = callback(request, **url_vars)
+        start_response(response.status_code, response.header_list)
+        return response.body
