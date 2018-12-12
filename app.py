@@ -14,7 +14,7 @@ def http405(env, start_response):
     start_response('405 Method Not Allowed', [('Content-type', 'text/plain; charset=utf-8')])
     return ['405 Method Not Allowed']
 
-class Request():
+class Request:
     def __init__(self,environ):
         self.environ = environ
         self._body = None
@@ -60,7 +60,7 @@ class Request():
         return json.loads(self.body)
 
 
-class Response():
+class Response:
     default_status = 200
     default_charset = 'utf-8'
     default_content_type = 'text/html; charset=UTF-8'
@@ -92,7 +92,7 @@ class Response():
         return [self._body]
 
 
-class Router():
+class Router:
     def __init__(self):
         self.routes = []
 
